@@ -1,1 +1,20 @@
 \section{Construction Paradigms}
+\subsection{Divide et Impera (Divide and Conquer)}
+  \subsubsection{Approach}
+    Break down the problem recursively until it can be solved directly. The instance size is $n$.
+    
+    \begin{enumerate}
+      \item Divide: 
+        \begin{itemize}
+          \item $n = 1$: Solve the problem directly
+          \item $n > 1$: Divide the problem in at least two sub-problems of similar size
+        \end{itemize}
+      \item Conquer: Solve the sub-problems using the same approach (recursion)
+      \item Merge: All solutions of the sub-problems are built together
+    \end{enumerate}
+    
+   \subsubsection{Examples}
+     \begin{itemize}
+       \item Quicksort
+       \item Mergesort
+     \end{itemize}

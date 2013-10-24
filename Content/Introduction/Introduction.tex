@@ -1,0 +1,20 @@
+\section{Introduction}
+\subsection{Complexity Analysis}
+  \begin{tabular}{ll}
+    $O(\cdot)$ & Upper bound: Maximum complexity of a problem or algorithm \\
+    $\Omega(\cdot)$ & Lower bound: Minimum complexity\\
+    $\Theta(\cdot)$ & Best algorithm: Maximum complexity of the algorithm is equal to minimum complexity of the problem
+  \end{tabular}
+  
+  Solve recursive analysis (exercise 3, 1b):
+  \begin{enumerate}
+    \item Initial: $Q(n) = \begin{cases}O(1) & n=1\\2+2Q(n/4)\end{cases}$
+    \item Recursive equation: $Q(n) = 2+2 Q(n/4)$\\$Q(n) = \sum\limits_{k=1}^i 2^k + 2^i Q(n/4^i) = 2^{i+1}-2 + 2^i Q(n/4^i)$
+    \item Calculate $i$ by using the initial condition: $1 = n/4^i$:\\
+    $n=4^i  \Rightarrow i = \log_4(n) = \log_2(n) / \log_2(4) = \log_2(n) / 2$
+    \item Take equation from step 2 and replace $Q(n/4^i)$ by $O(1)$:\\
+    $Q(n) = 2^{i+1} - 2 + 2^i \cdot O(1)$ 
+    \item Special case $O(1) = 1$:\\
+    $Q(n) = 2^{i+1} - 2 + 2^i = 2 \cdot 2^i - 2 + 2^i = 3 \cdot 2^i -2 
+    \underbrace{=}_{\text{Replace }i} 3 \cdot 2^{1/2 \cdot \log_2(n)} - 2 = 3 \sqrt{n} - 2 \in O(\sqrt{n})$
+  \end{enumerate}

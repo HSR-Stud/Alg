@@ -1,50 +1,52 @@
 % Genereller Header
 \documentclass[10pt,twoside,a4paper,fleqn]{article}
-\usepackage[utf8]{inputenc}
+\usepackage[utf8x]{inputenc}
 \usepackage[left=1cm,right=1cm,top=1cm,bottom=1cm,includeheadfoot]{geometry}
 \usepackage[ngerman]{babel,varioref}
-\usepackage[T1]{fontenc}
+
 
 % Pakete
 \usepackage{amssymb}
 \usepackage{amsmath}
-\usepackage{bm} %bold math symbols
 \usepackage{fancybox}
+\usepackage{bm}       % Bold Math
 \usepackage{graphicx}
-\usepackage{tabularx}
 \usepackage{color}
-\usepackage{xcolor}
 \usepackage{lastpage}
 \usepackage{wrapfig}
 \usepackage{fancyhdr}
 \usepackage{hyperref}
-\usepackage{verbatim}
-\usepackage{floatflt}
-\usepackage{arydshln}
-\usepackage{ucs}
-\usepackage{pdflscape} % landscape
+\usepackage{tabularx} % better tables
+%\usepackage{verbatim}
+%\usepackage{floatflt}
 \usepackage{multirow} % zellen in tabellen verbinden
 \usepackage{multicol} 
-\usepackage{diagbox} % getrennte zelle in tabelle
-% \usepackage{array} % anordnung in tabellen
+
+%\usepackage{arydshln}
+\usepackage{ucs}
+\usepackage{pdflscape} % landscape
+%\usepackage{slashbox} % getrennte zelle in tabelle
+%\usepackage{array} % anordnung in tabellen
+%Show pdf in 100 zomm factor!
+\usepackage{hyperref}
+\usepackage{listings}               %Programmcodeumgebung für Matlab Code
 
 %%%%%%%%%%%%%%%%%%%%
 % Generelle Makros %
 %%%%%%%%%%%%%%%%%%%%
+\newcommand{\skript}[1]{$_{\textcolor{red}{\mbox{\small{Skript S. #1}}}}$}
+\newcommand{\sachs}[1]{$_{\textcolor{blue}{\mbox{\small{Sachs S. #1}}}}$}
 \newcommand{\formelbuch}[1]{$_{\textcolor{red}{\mbox{\small{S#1}}}}$}
-\newcommand{\verweis}[2]{ {\small (siehe auch \ref{#1}, #2 (S. \pageref{#1}))
-}}
+\newcommand{\hayes}[1]{$_{\textcolor{red}{\mbox{\small{Hayes p #1}}}}$}
+\newcommand{\verweis}[2]{ {\small (siehe auch \ref{#1}, #2 (S. \pageref{#1}))}}
 \newcommand{\subsubadd}[1]{\textcolor{black}{\mbox{#1}}}
-\newenvironment{liste}[0]{
-	\begin{list}{$\bullet$}{\setlength{\itemsep}{0cm}\setlength{\parsep}{0cm} \setlength{\topsep}{0cm}}}
-    {\end{list}}
+\newenvironment{liste}[0]{\begin{list}{$\bullet$}{\setlength{\itemsep}{0cm}\setlength{\parsep}{0cm} \setlength{\topsep}{0cm}}}{\end{list}}
     
 \newcommand{\logd}[0]{\log_{10}}
 \newcommand{\subsubsubsection}[1]{\textbf{#1}}
+\newcommand{\matlab}[1]{\footnotesize{(Matlab: \texttt{#1})}\normalsize{}}
 
-\newenvironment{aufzaehlung}[0]{
-	\begin{enumerate}{\setlength{\itemsep}{0cm}\setlength{\parsep}{0cm}
-	\setlength{\topsep}{0cm}}} {\end{enumerate}}    
+\newenvironment{aufzaehlung}[0]{\begin{enumerate}{\setlength{\itemsep}{0cm}\setlength{\parsep}{0cm}\setlength{\topsep}{0cm}}} {\end{enumerate}}
 
 \newcommand{\abbHeight}[3]{
 	\begin{center}
@@ -53,6 +55,7 @@
     \end{center}
 }
 
+\newcommand{\todo}[1]{\colorbox{red}{#1}}
 %\newcommand{\skriptsection}[2]{\section{#1 {\tiny Skript S. #2}}}
 %\newcommand{\skriptsubsection}[2]{\subsection{#1 {\tiny Skript S. #2}}}
 %\newcommand{\skriptsubsubsection}[2]{\subsubsection{#1 {\tiny Skript S. #2}}}
@@ -76,8 +79,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \DeclareMathOperator{\sinc}{sinc}
 \DeclareMathOperator{\sgn}{sgn}
-\DeclareMathOperator{\tr}{tr}
-\DeclareMathOperator{\tridiag}{tridiag}
+\DeclareMathOperator{\Real}{Re}
+\DeclareMathOperator{\Imag}{Im}
+\DeclareMathOperator{\grad}{grad}
+\DeclareMathOperator{\rank}{rank}
 
 
 
@@ -97,21 +102,47 @@
 \put(0.2,0.1){\circle*{0.14}}\put(0.27,0.1){\line(1,0){0.45}}\put(0.77,0.1){\circle{0.14}}
 \end{picture}
 }
+\newcommand{\jw}{j\omega}
 
-\newcommand{\todo}[1]{\colorbox{red}{\textbf{#1}}}
-\newcommand{\e}{\mathrm{e}}
-\newcommand{\grad}[1]{\underset{#1}{\mathrm{grad~}}}
-\DeclareMathOperator{\Real}{Re}
-\DeclareMathOperator{\Imag}{Im}
+\newcommand{\numbercircled}[1]{\textcircled{\raisebox{-1pt}{#1}}}
 
-\newcommand{\cfbox}[2]{%
-    \colorlet{currentcolor}{.}%
-    {\color{#1}%
-    \fbox{\color{currentcolor}#2}}%
+\newcommand{\DFT}
+{
+%\overset{DFT}{
+	\begin{picture}(1,0.2)
+	\put(0.2,0.1){\circle{0.14}}{\put(0.27,0.1){\line(1,0){0.5}}}\put(0.77,0.1){\circle*{0.14}}
+	\end{picture}
+%}
 }
 
-
+\newcommand{\IDFT}
+{
+%\overset{IDFT}{
+    \begin{picture}(1,0.2)
+	\put(0.2,0.1){\circle*{0.14}}\put(0.27,0.1){\line(1,0){0.45}}\put(0.77,0.1){\circle{0.14}}
+	\end{picture}
+%}
+}
 \newcommand{\partFrac}[2]{\frac{\partial #1}{\partial #2}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Code Listings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lstloadlanguages{Matlab} 
+\lstnewenvironment{MatlabCode}[1][] 
+{
+\lstset{ 
+    language= Matlab, 
+    basicstyle=\ttfamily,                     %generell Schreibmaschinenschrift 
+    basicstyle=\scriptsize, 
+    showstringspaces=false,                  %In Strings keine Backspace zeichen breaklines=true, 
+    numbers   =   left,                              %links Zeilennummern 
+    xleftmargin=.04\textwidth, 
+    %frame=single,                                 %shadowbox, leftline, lines, topline, t, r, b, l 
+    #1} 
+} 
+{}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Allgemeine Einstellungen %
@@ -120,6 +151,7 @@
 \hypersetup{pdfauthor={\authorinfo},pdftitle={\titleinfo},colorlinks=false}
 \author{\authorinfo}
 \title{\titleinfo}
+\hypersetup{pdfstartview={XYZ null null 1.00}}
 
 %Kopf- und Fusszeile
 \pagestyle{fancy}

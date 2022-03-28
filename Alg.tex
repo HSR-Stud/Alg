@@ -1,33 +1,1378 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%
-% Dokumentinformationen %
-%%%%%%%%%%%%%%%%%%%%%%%%%
-\newcommand{\titleinfo}{Algorithms}
-\newcommand{\authorinfo}{G. Danuser, R. Koller}
-\newcommand{\versioninfo}{HS2013}
+% !TeX spellcheck = en_US 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Standard projektübergreifender Header für
-% - Makros 
-% - Farben
-% - Mathematische Operatoren 
+\documentclass[10pt,a4paper,twocolumn]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage[cm]{fullpage}
+\usepackage{color}
+\usepackage{enumerate}
+\usepackage[linesnumbered,lined,german]{algorithm2e}
+
+% Used for indicator function
+\usepackage{bbm}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyfoot[C]{\thepage/\pageref{LastPage}}
+\setlength{\parindent}{0in} 
+
+\newtheorem{definition}{Definition}[section]
+
+\newcommand\pro{\item[$+$]}
+\newcommand\con{\item[$-$]}
+
+\usepackage{enumitem}
+
+
+\usepackage[a4paper,
+bindingoffset=0.2in,
+left=0.4in,
+right=0.6in,
+top=0.5in,
+bottom=0.5in,
+footskip=.25in]{geometry}
+
+\setlength\itemsep{-1em}
+
+\usepackage{minted}
+\usepackage{lipsum}
+
+\setminted[c++]{ %
+	linenos=true,             % Line numbers
+	autogobble=true,          % Automatically remove common white space
+	frame=lines,
+	framesep=2mm,
+	fontsize=\footnotesize
+}
+
+\makeatletter
+\newenvironment{code}
+{\RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}%
+	\def\FV@BProcessLine##1{%
+		\hbox{%
+			\hbox to\z@{\hss\theFancyVerbLine\kern\FV@NumberSep}%
+			\FancyVerbFormatLine{##1}%
+		}%
+	}%
+	\VerbatimEnvironment
+	\setbox\z@=\hbox\bgroup
+	\begin{minted}{c++}}
+	{\end{minted}\egroup
+	\leavevmode\vbox{\hrule\kern2mm\box\z@\kern2mm\hrule}}
+\makeatother
+
+\begin{document}
+
+\begin{center}
+\textbf{Summary\\ Algorithms\\}
+\mbox{}\\
+\textit{FTP\_Alg}
+
+\vspace{10pt}
+
+marco.fuchs@ost.ch\\
+
+
+
+
+\vspace{10pt}
+
+HS 2021
+\end{center}
+
+\section{Begriffe}
+\begin{itemize}
+	\item Stable Algorithms: Other keys are sorted as well
+	\item Intern Algorithms: Whole data is available at once
+	\item Extern Algorithms: Data only in batches available
+\end{itemize}
+
+
+\section{Algorithm Analysis}
+\subsection{Asymptotic Notation}
+\subsubsection{$\Theta$-Notation}
+"average case"
+\begin{center}
+\includegraphics[width=6cm]{images/asymptotische-notation-theta.png}
+\end{center}
+
+\[
+\begin{array}{rcl}
+	\Theta(g(n)) & = & \{f(n):\exists c_1,c_2,n_0>0 \\
+	& & \text{ mit }0\leq c_1g(n)\leq f(n)\leq c_2g(n) \\
+	& & \text{ für alle }n\geq n_0\}
+\end{array}
+\]
+
+
+\subsubsection{$\mathcal{O}$-Notation}
+"worst case"
+\begin{center}
+\includegraphics[width=6cm]{images/asymptotische-notation-bigoh.png}
+\end{center}
+
+\[
+\begin{array}{rcl}
+	\mathcal{O}(g(n)) & = & \{f(n):\exists c,n_0>0 \\
+	& & \text{ mit }0\leq f(n)\leq cg(n) \\
+	& & \text{ für alle }n\geq n_0\}
+\end{array}
+\]
+
+\subsubsection{$\Omega$-Notation}
+"best case"
+\begin{center}
+\includegraphics[width=6cm]{images/asymptotische-notation-omega.png}
+\end{center}
+
+\[
+\begin{array}{rcl}
+	\Omega(g(n)) & = & \{f(n):\exists c,n_0>0 \\
+	& & \text{ mit }0\leq cg(n)\leq f(n) \\
+	& & \text{ für alle }n\geq n_0\}
+\end{array}
+\]
+
+\begin{center}
+	\includegraphics[width=8cm]{images/runetimes}
+\end{center}
+
+\begin{itemize}
+	\item $n!$ - factorial runtime
+	\item $2^n$ - exponential runtime
+	\item $n^2$ - polynomial runtime
+	\item $n \cdot log(n)$ - super-linear runtime
+	\item $n$ - linear runtime
+	\item $log(n)$ - logarithmic runtime
+	\item $1$ - constant runtime 
+\end{itemize}
+
+
+\subsubsection{Examples}
+$T(n) = \mathcal{O}(n \cdot log(n)^2)$
+\begin{center}
+	\includegraphics[width=0.45\textwidth]{images/example_alg_analysis1}
+\end{center}
+
+
+\subsection{Master Theorem}
+The master theorem allows to analyze the runtime complexity of recursive algorithms.
+
+Let $a \geq 1, b > 1$ be constants, $f(n)$ be a function and $T(n)$ defined by the following recurrence\\
+$$
+T(n)=a T(n / b)+f(n)
+$$
+
+where $\frac{n}{b}$ is interpretex as either $\lfloor n / b\rfloor$ or $\lceil n / b\rceil$. Then
+
+\begin{enumerate}
+	\item $T(n)=\Theta\left(n^{\log _{b} a}\right) \text { if } f(n)=O \left(n^{\log _{b} a-\epsilon}\right) $ \\ $\text { for some } \epsilon>0 $
+	\item $T(n)=\Theta\left(n^{\log _{b} a} \ln n\right) \text { if } f(n)=\Theta\left(n^{\log _{b} a}\right)$
+	\item $T(n)=\Theta(f(n)) \text { if } f(n)=\Omega\left(n^{\log _{b} a+\epsilon}\right)$ \\ $ \text { for some } \epsilon>0, \text { and if }  a \cdot f(n / b) \leq c \cdot f(n) $ \\ $\text{ for all } n \geq n_{0}, \text { where } c \text { and } n_{0} \text { are positive } \\ \text { constant with } $
+\end{enumerate}
+
+
+$$
+\begin{array}{l}T(n)=a \cdot T\left(\frac{n}{b}\right)+\mathcal{O}{(n^{d})} \text { where } \begin{array}{r}a>0 \\ b>1 \\ d>0\end{array} \\
+	
+T(n)=\left\{\begin{array}{ll}\mathcal{O}\left(n^{d}\right) 
+		
+& \text { if } d > \log _{b}(a)\\
+\mathcal{O}\left(n^{d} \cdot \log (n)\right) & \text { if } d=\log _{b}(a) \\
+\mathcal{O}\left(n^{\log_{b}(a)}\right) & \text { if } d<\log _{b}(a)\end{array}\right.\end{array}
+$$
+
+Example:\\
+$T(n) = 4 \cdot T(\frac{n}{2}) + \mathcal{O}(n^1)$\\
+$1 = d < \log_{2}(4) = 2 \rightarrow T(n) = \mathcal{O}(n^{log_{b}(a)}) = \mathcal{O}(n^2)$ 
+
+
+
+\section{Datenstrukturen}
+
+\subsection{Array}
+
+\begin{center}
+	\includegraphics[width=8cm]{images/array1}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=8cm]{images/array_operations}
+\end{center}
+
+
+
+
+\subsection{Stack}
+Der Stack besteht aus den Elementen $S[1..S.top]$.
+
+\begin{center}
+\includegraphics[width=10cm]{images/stack-layout}
+\end{center}
+
+\subsubsection{Operationen}
+\begin{itemize}
+\item \textbf{PUSH(S,x):} Platziert das Element x auf dem Stack. 
+\item \textbf{POP(S):} Entfernt das oberste Element vom Stack.
+\item \textbf{STACK-EMPTY(S):} Liefert true, wenn der Stack leer ist.
+\end{itemize}
+
+\textbf{Bemerkungen}
+\begin{itemize}
+\item Alle drei Operationen haben eine Laufzeit von $\mathcal{O}(1)$.
+\end{itemize}
+
+\subsubsection{Implementation}
+\begin{center}
+\includegraphics[width=4.5cm]{images/stack-implementation.png}
+\end{center}
+
+\subsection{Queue}
+Eine Queue verfügt über einen Kopf (Head) und ein Ende (Tail). Neue Elemente werden am Ende angefügt. Das nächste Element wird jeweils vom Kopf entfernt.
+
+\begin{center}
+\includegraphics[width=6cm]{images/queue-layout.png}
+\end{center}
+
+\subsubsection{Operationen $\mathcal{O}(1)$}
+\begin{itemize}
+\item \textbf{ENQUEUE(Q,x):} Fügt das Element x an das Ende der Queue an.
+\item \textbf{DEQUEUE(Q):} Entfernt das nächste Element von der Kopfposition.
+\end{itemize}
+
+\subsubsection{Implementation}
+\begin{center}
+\includegraphics[width=6cm]{images/queue-implementation.png}
+\end{center}
+
+%\subsection{Linked List (optional)}
+%Eine Linked List ist eine \emph{geordnete Liste} von Objekten, in der jedes Objekt einen Zeiger auf das nächste Objekt enthält. 
 %
-% DORT NUR ERGÄNZEN, NICHTS LÖSCHEN
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-\include{header}
+%\begin{center}
+%\includegraphics[width=8.5cm]{linkedlist.png}
+%\end{center}
+%
+%\textbf{Bemerkungen}
+%\begin{itemize}
+%\item Der \emph{prev}-Zeiger des ersten Objekts und der \emph{next}-Zeiger des letzten Objekts in der Linked List sind jeweils \emph{NIL}.
+%\end{itemize}
 
-% Möglichst keine Ergänzungen hier, sondern in header.tex
-\begin{document} 
- 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Operationen}
+\begin{itemize}
+\item \textbf{INSERT(L,x):} Fügt Element x am Anfang der Liste L ein. Die Laufzeit ist $\mathcal{O}(1)$.
+\item \textbf{DELETE(L,x):} Löscht ein Element aus der Liste L. Als Input dient ein Zeiger auf das Objekt. Die Laufzeit beträgt $\mathcal{O}(1)$. Falls zuerst noch der Zeiger ermittelt werden muss, beträgt die Laufzeit $\mathcal{O}(n)$, da zuerst noch SEARCH ausgeführt werden muss.
+\item \textbf{SEARCH(L,k):} Findet das erste Element mit Key k in der Linked List L. SEARCH(L,4) liefert für obiges Bild einen Zeiger auf das dritte Objekt in der Liste. Die Laufzeit beträgt $\Theta(n)$ im schlechtesten Fall.
+\end{itemize}
 
-\input{./Content/Introduction/Introduction}
-\input{./Content/ComputationalGeometry/ConstructionParadigms}
-\input{./Content/ComputationalGeometry/RangeSearching}
-\input{./Content/ComputationalGeometry/PlanarSubdivision}
-\input{./Content/ComputationalGeometry/Rest}
-\clearpage
-\input{./Content/Graphen/Graphen}
-\input{./Content/MetaHeuristics/MetaHeuristics}
+\subsubsection{Implementation}
+\begin{center}
+\includegraphics[width=5cm]{images/linkedlist-insert.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=5cm]{images/linkedlist-delete.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=5cm]{images/linkedlist-search.png}
+\end{center}
+
+\section{Binary Search Tree (BST)}
+
+\begin{itemize}
+	\item Each Node is greater than every node in its left subtree
+	\item Each Node is less than every node in its right subtree
+\end{itemize}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/bst1}
+\end{center}
+
+\subsection{Operations}
+\begin{itemize}
+	\item x.p means parent node of x
+	\item h means height of the tree
+\end{itemize}
+
+
+\textbf{Tree Minimum $\mathcal{O}(h)$}
+\begin{center}
+	\includegraphics[width=4cm]{images/tree-minimum}
+\end{center}
+
+\textbf{Tree Maximum $\mathcal{O}(h)$}
+\begin{center}
+	\includegraphics[width=5cm]{images/tree-maximum}
+\end{center}
+
+\textbf{Tree Successor $\mathcal{O}(h)$}
+\begin{center}
+	\includegraphics[width=5cm]{images/tree-successor}
+\end{center}
+
+\textbf{Tree Predecessor $\mathcal{O}(h)$}
+\begin{center}
+	\includegraphics[width=5cm]{images/tree-predecessor}
+\end{center}
+
+\textbf{Inorder Tree Walk $\mathcal{O}(h)$}
+\begin{center}
+	\includegraphics[width=5cm]{images/inorder-tree-walk}
+\end{center}
+
+\textbf{Insert Node$\mathcal{O}(?)$}
+A new node is always inserted as a leaf.
+\begin{center}
+	\includegraphics[width=6cm]{images/tree-insert}
+\end{center}
+\begin{center}
+	\includegraphics[width=8cm]{images/example-insert-tree}
+\end{center}
+
+\textbf{Tree Search $\mathcal{O}(h)$}
+\begin{center}
+	\includegraphics[width=6cm]{images/tree-search}
+\end{center}
+Alternative:
+\begin{center}
+	\includegraphics[width=6cm]{images/tree-search2}
+\end{center}
+
+\textbf{Tree Delete $\mathcal{O}(?)$}
+
+\begin{center}
+\includegraphics[width=6cm]{images/tree-delete}
+\end{center}
+
+Transplant: Replace one subtree without updating
+\begin{center}
+\includegraphics[width=6cm]{images/transplant-tree}
+\end{center}
+
+\begin{center}
+\includegraphics[width=10cm]{images/tree-delete-example}
+\end{center}
+"Replacement with inorder successor".\\
+
+\textbf{Range Searching}
+Nachfolgend ein Beispiel einer Range Query im Bereich $[18:77]$. Zurückgegeben werden müssen die dunkelgrau markierten Knoten plus der Knoten $u$.
+\begin{center}
+	\includegraphics[width=8cm]{images/range-search-example}
+\end{center}
+
+Grobbeschreibung:
+\begin{enumerate}
+	\item Finde den Knoten $v_{split}$.
+	\item Ausgehend von $v_{split}$, folge dem Pfad von $x$. Bei jedem Knoten, bei dem die Suche links weitergeht, rapportiere den rechten Teilbaum.
+	\item Ausgehend von $v_{split}$, folge dem Pfad von $x'$. Bei jedem Knoten, bei dem die Suche rechts weitergeht, rapportiere den linken Teilbaum.
+\end{enumerate}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/rangequery}
+\end{center}
+
+
+\begin{center}
+	\includegraphics[width=8cm]{images/find-split-node}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=4cm]{images/find-split-node-example}
+\end{center}
+
+\textbf{Komplexitätsanalyse}
+Der Baum benötigt $\mathcal{O}(n)$ Platz und kann in $\mathcal{O}(n\log{n})$ Zeit konstruiert werden ($n$ Elemente, ein Element muss den Baum mit Höhe $\log{n}$ von der Wurzel bis zu den Blättern durchlaufen). Bei der Abfragezeit müssen die Anzahl zu rapportierenden Knoten $k$ mitberücksichtigt werden (outputsensitiver Algorithmus). \verb+ReportSubTree+ benötigt $\mathcal{O}(k)$ Zeit. Die restlichen Knoten, die besucht werden, befinden sich auf dem Pfad von $x$ oder $x'$. Die Pfadlänge beträgt jeweils $\mathcal{O}(\log{n})$. Die gesamte Abfragezeit beträgt somit $\mathcal{O}(\log{n}+k)$.
+
+
+\section{KD-Trees}
+
+\subsection{Build KD-Tree $\mathcal{O}(n \cdot \log(n))$}
+\begin{center}
+	\includegraphics[width=8cm]{images/example-build-kdtree}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=8cm]{images/pseudo-kdtree}
+\end{center}
+
+\textbf{Example}\\
+$P = \{(1,3),(12,1),(4,5),(5,4),(10,11),(8,2),(2,7)\}$
+
+\begin{center}
+	\includegraphics[width=9cm]{images/kd-tree-example1}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/kd-tree-example2}
+\end{center}
+
+
+
+\subsection{Query KD-Tree $\mathcal{O}(\sqrt{n}+k)$}
+\begin{center}
+	\includegraphics[width=9cm]{images/query-kdtree-example}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=8cm]{images/search-kd-tree}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=4cm]{images/sarch-kd-tree-scheme}
+\end{center}
+
+
+\section{Sorting Algorithms}
+\subsection{Overview}$$
+\begin{array}{l|ll}\text { Algorithm } & \begin{array}{l}\text { Worst-case } \\ \text { running time }\end{array} & \begin{array}{l}\text { Average-case } \\ \text { running time }\end{array} \\ \hline \text { Insertion sort } & \Theta\left(n^{2}\right) & \Theta\left(n^{2}\right) \\ \text { Merge sort } & \Theta(n \lg n) & \Theta(n \lg n) \\ \text { Heapsort } & O(n \lg n) & - \\ \text { Quicksort } & \Theta\left(n^{2}\right) & \Theta(n \lg n) \quad \\ \text { Counting sort } & \Theta(k+n) & \Theta(k+n) \\ \text { Radix sort } & \Theta(d(n+k)) & \Theta(d(n+k)) \\ \text { Bucket sort } & \Theta\left(n^{2}\right) & \Theta(n) \quad \end{array}
+$$
+
+\subsection{Insertion Sort $\mathcal{O}(n^2)$}
+
+
+
+\begin{center}
+	\includegraphics[width=9cm]{images/insertion-sort}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=8cm]{images/insertion-sort-example}
+\end{center}
+
+\subsection{Merge Sort}
+\begin{itemize}
+	\pro $\mathcal{O}(n \cdot \log(n))$
+	\con Does not sort in place
+\end{itemize}
+
+\begin{center}
+	\includegraphics[width=8cm]{images/merge-sort}
+\end{center}
+
+\textbf{Divide}
+\begin{center}
+	\includegraphics[width=6cm]{images/merge-sort-divide}
+\end{center}
+
+\textbf{Merge}
+\begin{center}
+	\includegraphics[width=10cm]{images/merge-sort-merge}
+\end{center}
+
+\textbf{Example}
+\begin{center}
+	\includegraphics[width=10cm]{images/mergesort-example1}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9.5cm]{images/mergesort-example2}
+\end{center}
+
+\textbf{Runetime Complexity}
+Using the master theorem: In Mergeseort $a=b=2$ and $f(n)=D(n)+C(n)=\Theta(n)$. Thus the running time is $\Theta(n \cdot \log(n))$
+$$
+T(n)=\left\{\begin{array}{ll}\Theta(1) & \text { if } n \leq c \\ a T(n / b)+D(n)+C(n) & \text { otherwise }\end{array}\right.
+$$
+
+
+\subsection{Heap Sort}
+\begin{itemize}
+	\pro $\mathcal{O}(n \cdot \log(n))$
+	\con Sorts in place (no overhead)
+\end{itemize}
+
+Fill the data into a tree and create a Max-Heap.
+
+\begin{center}
+	\includegraphics[width=9cm]{images/build-max-heap}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=8cm]{images/max-heapify}
+\end{center}
+
+\newpage
+\textbf{Example Max-Heap}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/max-heapify-example}
+\end{center}
+
+\textbf{Example Heapsort}\\
+Build Heap-Tree and Maxify:
+\begin{center}
+	\includegraphics[width=9cm]{images/heapsort-example1}
+\end{center}
+\newpage
+Sort the Maxified-Tree:
+\begin{center}
+	\includegraphics[width=9.5cm]{images/heapsort-example2}
+\end{center}
+
+
+\subsection{Quicksort}
+\begin{itemize}
+	\item $\mathcal{O}(n^2)$
+	\item $\Theta(n \cdot log(n))$
+\end{itemize}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/quick-sort-split}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=6cm]{images/runtime-quicksort}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=7cm]{images/quicksort-example}
+\end{center}
+
+$$
+\begin{array}{l}\text
+	{ Worst-case: } T(n)=T(n-1)+T(0)+\Theta(n)\\ \rightarrow T(n)=\Theta\left(n^{2}\right) \\ \text
+	{ Best - case: } T(n)=2 T\left(\frac{n}{2}\right)+\theta(n)\\ \rightarrow T(n)=O(n \cdot \log (n)) \\ \text { Average-case: } T(n) = (0)+\Theta\left(\frac{n-1}{2}-1\right)+\Theta\left(\frac{n-1}{2}\right)\\=\Theta(n)\end{array}
+$$
+
+
+\subsection{Counting Sort}
+\begin{center}
+	\includegraphics[width=9cm]{images/counting-sort}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9.5cm]{images/counting-sort-example}
+\end{center}
+
+
+
+\section{Sweep Algorithms}
+\subsection{Segment Direction}
+\begin{center}
+	\includegraphics[width=9cm]{images/segment-direction}
+\end{center}
+
+\begin{itemize}
+	\item a) $\operatorname{cross}\left(\overrightarrow{p_{0} p_{1}}, \overrightarrow{p_{0} p_{2}}\right)>0$
+	\item b) $\operatorname{cross}\left(\overrightarrow{p_{0} p_{1}}, \overrightarrow{p_{0} p_{2}}\right)<0$
+	\item if $\operatorname{cross}\left(\overrightarrow{p_{0} p_{1}}, \overrightarrow{p_{0} p_{2}}\right)=0$ $\rightarrow$ collinear, because spanned area is zero 
+\end{itemize}
+
+\subsection{Two Line Intersection}
+4 points are given, we want to check whether the two segment intersect each other.
+
+\begin{center}
+	\includegraphics[width=8cm]{images/segment-intersection1}
+\end{center}
+\begin{center}
+	\includegraphics[width=9cm]{images/segment-intersection2}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/line-intersection-examplea}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/line-intersection-exampleb}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=5cm]{images/line-intersection-examplec}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=5cm]{images/line-intersection-exampled}
+\end{center}
+
+\begin{enumerate}[label=(\alph*)]
+	\item We have ($d_{1}<0$ and $d_{2}>0$) and ($d_{3} > 0$ and $d_{4} < 0$) $\rightarrow$ segments intersect
+	\item We have ($d_{1}<0$ and $d_{2}<0$) $\rightarrow$ segments do not intersect
+	\item We have $d_{3}=0$ and ON-SEGMENT($p_{1}$, $p_{2}$, $p_{3}$) = true $\rightarrow$ not a intersection but on segment
+	\item We have $d_{3}=0$ and ON-SEGMENT($p_{1}$, $p_{2}$, $p_{3}$) = false $\rightarrow$ not a intersection and neither on segment
+\end{enumerate}
+
+\subsection{Any Pair Intersection}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/any-intersection}
+\end{center}
+
+\textbf{Event Points}\\
+The event points will be sorted according to the x-coordinate. If two or more endpoints have the same x-coordinate, we break ties by putting before left endpoints than right endpoints. For tails we put before endpoints with smaller y-coordinate.
+
+
+\begin{center}
+	\includegraphics[width=9cm]{images/endpoints-example}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/pseudo-code-sweetlines}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/operation-sweep-lines}
+\end{center}
+
+
+
+\section{Vektor-Operationen}
+
+\subsection{Betrag eines Vektors}
+Der Betrag eines Vektors $\vec{a}$, $|\vec{a}|$, entspricht der Länge des Vektors (des Pfeils).
+
+\vspace{10pt}
+
+Im zweidimensionalen Raum:
+\[
+|\vec{a}|=\sqrt{a_1^2+a_2^2}
+\]
+
+Im dreidimensionalen Raum:
+\[
+|\vec{a}|=\sqrt{a_1^2+a_2^2+a_3^2}
+\]
+
+\subsection{Skalarprodukt (dot product)}
+Das Skalarprodukt ordnet zwei Vektoren $\vec{a}$ und $\vec{b}$ eine Zahl (Skalar) zu. Die Zahl entspricht dem Betrag des Vektors $\vec{b}_{\vec{a}}$.
+
+\begin{center}
+\includegraphics[width=3cm]{images/skalarprodukt.png}
+\end{center}
+
+\vspace{10pt}
+
+Geometrische Interpretation:
+\begin{itemize}
+\item \textbf{Parallelität:} Zwei Vektoren sind parallel, wenn das Skalarprodukt der beiden Vektoren gleich dem Produkt der beiden Beträge ist, also $\vec{a}\cdot\vec{b}=|\vec{a}||\vec{b}|$.
+\item \textbf{Orthogonalität:} Zwei Vektoren sind genau dann orthogonal, wenn ihr Skalarprodukt 0 ist.
+\item \textbf{Spitzer Winkel:} Wenn das Skalarprodukt $>0$ ist, ist $\phi$ ein spitzer Winkel ($<90^\circ$).
+\item \textbf{Stumpfer Winkel:} Wenn das Skalarprodukt $<0$ ist, ist $\phi$ ein stumpfer Winkel ($>90^\circ$).
+\end{itemize}
+
+Berechnung mit Vektorkomponenten:
+\[
+\vec{x}\cdot\vec{y}:=\sum_{i=1}^{n}x_iy_i=x_1y_1+x_2y_2+...+x_ny_n
+\]
+
+Berechnung mit Betrag und Cosinus:
+\[
+\vec{x}\cdot\vec{y}=|\vec{x}||\vec{y}|\cos\measuredangle(\vec{x},\vec{y})
+\]
+
+\textbf{Bemerkungen}
+\begin{itemize}
+\item Das Skalarprodukt ist für beliebige $n$-dimensionale Vektoren definiert.
+\end{itemize}
+
+\subsection{Kreuzprodukt / Vektorprodukt}
+Das Kreuzprodukt $\vec{a}\times\vec{b}$ von zwei Vektoren $\vec{a}$ und $\vec{b}$ im dreidimensionalen Anschauungsraum ist ein Vektor, der orthogonal zu $\vec{a}$ und $\vec{b}$, und damit zu der von $\vec{a}$ und $\vec{b}$ aufgespannten Ebene ist.
+
+\begin{center}
+\includegraphics[width=3cm]{images/vectorproduct.png}
+\end{center}
+
+Geometrische Interpretation:
+\begin{itemize}
+\item \textbf{Fläche:} Der Betrag des Kreuzprodukts, $|\vec{a}\times\vec{b}|$, gibt die Fläche des von $\vec{a}$ und $\vec{b}$ aufgespannten Parallelogramms an.
+\item \textbf{Normale einer Ebene:} Das Kreuzprodukt entspricht dem Normalenvektor der Ebene.
+\end{itemize}
+
+Berechnung mit Vektorkomponenten:
+\[
+\vec{a}\times\vec{b}=
+\left(
+\begin{array}{c}
+  a_1 \\
+  a_2 \\
+  a_3
+\end{array}
+\right)
+\times
+\left(
+\begin{array}{c}
+  b_1 \\
+  b_2 \\
+  b_3
+\end{array}
+\right)
+=
+\left(
+\begin{array}{c}
+  a_2b_3-a_3b_2 \\
+  a_3b_1-a_1b_3 \\
+  a_1b_2-a_2b_1
+\end{array}
+\right)
+\]
+
+Berechnung mit Winkel:
+\[
+\vec{a}\times\vec{b}=|\vec{a}||\vec{b}|\sin\theta\vec{n}
+\]
+
+\textbf{Bemerkungen}
+\begin{itemize}
+\item Das Kreuzprodukt ist nur für den dreidimensionalen Raum definiert.
+\end{itemize}
+
+\newpage
+\section{Introduction to Meta-Heuristics}
+
+\subsection{Greedy Algorithm}
+Algorithm that finds the optimal choice for the current state/location. Does not provide the best solution, but a reasonable good one.
+
+\subsection{NP-Problems}
+
+\begin{center}
+	\includegraphics[width=7cm]{images/np-problems}
+\end{center}
+
+
+\textbf{P Problems}\\
+Problems that can be solved in polynomial time e.g. sorting, shortest path $\mathcal{O}(n^2)$
+
+\textbf{NP}\\
+The given solution can be verified in polynomial time. No polynomial algorithm, so far, is known to solve this.
+
+\textbf{NP Complete}\\
+These are the problems which are both NP and NP-Hard. That means, if we can solve these problems, we can solve any other NP problem and the solutions to these problems can be verified in polynomial time.\\
+
+Example: TSP $\mathcal{O}(2^n)$
+
+
+
+\subsection{Graphs}
+\begin{center}
+	\includegraphics[width=6cm]{images/graphs}
+\end{center}
+
+\textbf{Representation methods}\\
+\begin{itemize}
+	\item Adjacency Matrix
+		\begin{center}
+			\includegraphics[width=4cm]{images/adjacency-matrix-example}
+		\end{center}
+	\item Adjacency List: for each vertex the list of its neighbors\\
+		\quad 1: 2, 3, 4\\
+		2: 3\\
+		3: 2\\
+		4: 4\\
+		5: 2
+	\item Vertex List\\
+		Number of vertices; Number of edges;\\
+		For each vertex: number and list of neighbors\\
+		Example: 5, 7, 3, 2, 3, 4, 1, 3, 1, 2, 1, 4, 1, 2
+		
+	\item Edge List\\
+		Number of vertices; Number of edges;\\
+		For each edge: start and end vertex\\
+		Example: 5, 7, 1, 2, 1, 3, 1, 4, 2, 3, 3, 2, 4, 4, 5, 2
+\end{itemize}
+
+\subsection{Problems}
+\subsubsection{TSP}
+\begin{itemize}
+	\item Tours with $c_{1}$ as first city: $\mathcal{O}(n!)$
+	\item NP-hard
+	\item exponential runtime $\mathcal{O}(2^n)$
+	\item Describtion: $\min \left(\sum_{i=1}^{n-1} d_{p i} p_{i+1}+d_{p n} p 1\right)$
+\end{itemize}
+
+\subsubsection{Scheduling}
+
+
+\subsubsection{Vertex Colering}
+Assignment of labels to each vertex such that no edge connects two identically colered vertices. Minimum vertex coloring means, to minimize the number of the assign colors.
+
+\begin{center}
+	\includegraphics[width=5cm]{images/vertex-colering-example}
+\end{center}
+
+\textbf{First Fitting Color}
+\begin{center}
+	\includegraphics[width=8cm]{images/first-fitting-color}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9.5cm]{images/first-fitting-color-example}
+\end{center}
+
+Decreasing Degree:
+
+\begin{center}
+	\includegraphics[width=9cm]{images/decreasing-degree}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/degree-of-saturation}
+\end{center}
+
+
+\subsubsection{Capacitated Vehicle Routing Problem (CVRP)}
+\begin{center}
+	\includegraphics[width=9cm]{images/cvrp}
+\end{center}
+
+
+Input:
+\begin{itemize}
+	\item n customers and 1 depot
+	\item $q_{i}$: quantity ordered by customer i
+	\item Distances $d:{ij}$ between each pair of customers and distances between depot and each customer
+	\item Q: vehicle capacity
+\end{itemize}
+
+A Feasible Solution is a set of tours such that
+\begin{itemize}
+	\item Each tour starts from and comes back to the depot
+	\item Each customer appears exactly once in the set of tours
+	\item Each customer receives her ordered quantity
+	\item The sum of quantities on any tour $\leq$ Q
+\end{itemize}
+
+Objective: Minimize the total travel length performed by the vehicle
+
+\subsubsection{Quadratic Assignment Problem (QAP)}
+Given sets of n facilities (also called activities) and n locations, the flows between facilities and the distances between locations, the objective of the Quadratic Assignment Problem is to assign each facility to a location in such a way as to minimize the total transportation cost.
+
+Applications:
+\begin{itemize}
+	\item Number of connections between electronic modules + Possible positions for the placement of the modules
+	\item Number of passengers that must change flights + Positions of the gates at an airport
+	\item Frequency of consecutive appearance of two letters in a language + Time between typing of two successive keys on a keyboard
+	\item Meeting frequency of two employees + Time for walking from one desk to the other
+\end{itemize}
+
+$$
+\begin{array}{l}\qquad \min z=\sum_{i, j=1}^{n} \sum_{h, k=1}^{n} d_{i h} f_{j k} X_{i j} X_{h k} \\ \text { Subject to } \\ \sum_{i=1}^{n} X_{i j}=1 \quad \text { for } j=1,2,3, \ldots, n \\ \sum_{j=1}^{n} X_{i j}=1 \quad \text { for } i=1,2,3, \ldots, n \\ X_{i j} \in(0,1) \quad \text { for } i, j=1,2,3, \ldots, n \\ \text { Where } d_{i h} \in D \text { distance matrix and } f_{i k} \in F \text { flow matrix. }\end{array}
+$$
+
+\subsubsection{Steiner Tree}
+A Steiner Tree is a NP-hard problem.
+\begin{center}
+	\includegraphics[width=9cm]{images/steiner-tree}
+\end{center}
+
+
+
+\subsection{Shortest-Path-Problem}
+Find the shortest length from s to j for each vertex.
+
+\subsubsection{Dijkstra's Algorithm}
+We consider a weighted directes graph, where each weight is non-negative.
+
+\begin{center}
+	\includegraphics[width=5cm]{images/init-single-source}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=5cm]{images/relax}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=5cm]{images/dijkstra}
+\end{center}
+
+
+\textbf{Example 1}
+\begin{center}
+	\includegraphics[width=9cm]{images/dijkstra-example_1}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=5cm]{images/dijkstra-example_2}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=5cm]{images/dijkstra-example_3}
+\end{center}
+d
+\begin{center}
+	\includegraphics[width=9cm]{images/dijkstra-example_4}
+\end{center}
+
+
+\textbf{Example 2}
+\begin{center}
+	\includegraphics[width=8cm]{images/dijkstra-example2}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=8cm]{images/dijkstra-example22}
+\end{center}
+
+\subsection{Minimum Spanning Tree (MST)}
+
+\subsubsection{Kruskal-Algorithm $\mathcal{O}(n)$}
+
+\begin{enumerate}
+	\item Sort the list according to the costs
+	\item Iterate through the list form cheapest to most expensive edge and add the edges to the MST when they do not generate a circle
+\end{enumerate}
+
+
+\begin{center}
+	\includegraphics[width=9cm]{images/kruskal}
+\end{center}
+
+\subsubsection{Prim-Algorithm $\mathcal{O}(n)$}
+Start with a vertex and add always the cheapest edge to the MST.
+
+\begin{center}
+\includegraphics[width=9cm]{images/prim}
+\end{center}
+
+
+\subsubsection{Building a TSP-Tour from MST}
+\begin{center}
+	\includegraphics[width=7.5cm]{images/mst_for_tsp}
+\end{center}
+
+
+\newpage
+\section{Meta-Heuristics}
+\subsection{Meta-Heuristic Approach}
+
+\begin{enumerate}
+	\item Use a \textbf{Constructive Method} to create an initial solution (e.g. Nearest Neighbour for TSP)
+	\item Use a \textbf{Local Improvement Method} to improve the solution (e.g. 2-opt for TSP)
+	\item Apply \textbf{Selection Rule} to decide which improvement move is taken (e.g. Best Improving Move)
+	\item \textbf{Randomized Methods} (e.g. Simulated Annealing) explore a larger search space than pure greedy methods
+\end{enumerate}
+
+\subsection{Constructive Methods - \textit{Finding a first reasonable good solution}}
+\subsubsection{Random Sampling/Building}
+
+\begin{itemize}
+	\pro simple method
+	\pro works for almost all problems
+	\pro easy to implement
+	\con bad solution quality
+\end{itemize}
+
+\subsubsection{Greedy construction}
+
+\begin{itemize}
+	\con Too short-sighted
+	\con A good choice at a step can be globally disastrous 
+\end{itemize}
+
+\begin{center}
+\includegraphics[width=9cm]{images/creedy-construction}
+\end{center}
+
+\textbf{Nearest Neightbor}
+\begin{center}
+\includegraphics[width=9cm]{images/nearest-neighbor}
+\end{center}
+
+\textbf{Best Global Edge}
+\begin{center}
+\includegraphics[width=9cm]{images/best-global-edge}
+\end{center}
+
+\newpage
+\textbf{Maximum Regret}
+\begin{center}
+\includegraphics[width=9cm]{images/maximum-regret}
+\end{center}
+
+\textbf{Random Best Insertion}
+\begin{center}
+\includegraphics[width=9.5cm]{images/random-best-insertion}
+\end{center}
+
+\textbf{Most Distant Best Insertion}
+\begin{center}
+\includegraphics[width=9cm]{images/most-distant-best-insertion}
+\end{center}
+
+\textbf{Nearest Best Insertion}
+\begin{center}
+\includegraphics[width=9cm]{images/nearest-best-insertion}
+\end{center}
+
+
+
+\subsubsection{Look Ahead Methods}
+
+\textbf{Exhaustive Search}
+Generate all feasible solutions and find the optimum one.
+\begin{itemize}
+	\pro Guarantee to find an optimal solution
+	\pro Easy to implement
+	\con Too large running-time due exponential approach
+\end{itemize}
+
+\begin{center}
+\includegraphics[width=9.5cm]{images/exhaustive-search}
+\end{center}
+
+\subsubsection{Pilot Method}
+The time complexity is increaseed by applying this method to each partial solution. The pilot-heuristic to complete a solution must be chosen, e.g. this could be a greedy method, greedy method + local search, etc.
+
+\begin{center}
+\includegraphics[width=9.5cm]{images/pilot-method}
+\end{center}
+
+\textbf{Example:}\\
+Apply the Pilot Method using Nearest Neighbor as pilot strategy.
+
+\begin{center}
+\includegraphics[width=9cm]{images/pilot-method-example}
+\end{center}
+
+\subsubsection{Beam Search}
+\begin{center}
+\includegraphics[width=9cm]{images/beam-search}
+\end{center}
+
+\begin{center}
+\includegraphics[width=9cm]{images/beam-search-example}
+\end{center}
+
+
+\subsection{Local improvements - \textit{Improve an existing solution}}
+
+\begin{center}
+\includegraphics[width=10cm]{images/local-improvements}
+\end{center}
+
+\subsubsection{k-opt (e.g. 2-opt): Replace k edges of the tour by k other edges}
+
+\begin{center}
+\includegraphics[width=9.5cm]{images/two-opt}
+\end{center}
+
+\subsubsection{How to decide which move to take?}
+\textbf{Selection with Frist Improving move}
+
+\begin{center}
+\includegraphics[width=9cm]{images/first-improving}
+\end{center}
+
+
+\textbf{Selection with Best Improving Move}
+\begin{itemize}
+	\pro local optimum
+	\con larger running-rime 
+\end{itemize}
+
+\begin{center}
+\includegraphics[width=9cm]{images/best-improving}
+\end{center}
+
+
+\subsubsection{Neighborhood Properties}
+
+\begin{center}
+\includegraphics[width=9cm]{images/neighborhood-properties}
+\end{center}
+
+\textbf{Examples of Neighborhood Analysis}
+\begin{center}
+\includegraphics[width=9cm]{images/analysis-neighborhood}
+\end{center}
+
+\textbf{Example for CVRP}
+\begin{center}
+\includegraphics[width=4cm]{images/cvrp}
+\end{center}
+
+n = customers, m = tours
+\begin{itemize}
+	\item Pick customer c and move to another tour $\mathcal{O}(n \cdot m)$
+	\item Switch two customers $\mathcal{O}(n \cdot n)$
+	\item Exchange the tour-beginning $\mathcal{O}(n \cdot n)$
+	\item Exhange portion i until j with prtion r until s $\mathcal{O}(n^4)$
+\end{itemize}
+
+\textbf{Example for QAP}
+\begin{itemize}
+	\item Swap locations of facilities $\mathcal{O}(n^2)$
+	\item Exchange locations k=3,4,.. $\mathcal{O}(n^k)$
+\end{itemize}
+
+\subsection{Randomized Local Searches}
+A weakness of a greedy approach is, that the best choice at a step can be globally very bad. By adding a random component in the selection of the next element for the local improvement. Bias the choice, of small incremental cost to accept sometimes bad moves.
+
+\subsubsection{Simulated Annealing}
+\begin{center}
+\includegraphics[width=9cm]{images/simulated-annealing}
+\end{center}
+
+$c \cdot m$ means: apply move m to solutions s\\
+
+Die künstliche Temperatur \textit{T} wird im Laufe des Optimierungsverfahrens langsam reduziert, so dass die Wahr- scheinlichkeit für die Akzeptanz einer Verschlechterung immer kleiner wird und schliesslich gegen Null strebt. Zum Entscheiden, ob ein verschlechternder Schritt angenommen wird, ziehen wir eine gleichverteilte Zufallszahl \textit{z} im Intervall [0, 1]. Ist $z \leq p$, so wird der verschlechternde Schritt akzeptiert, ist $z > p$, so wird dieser zurückgewiesen.
+
+\begin{center}
+\includegraphics[width=4cm]{images/graph-simulated-annealing}
+\end{center}
+
+\begin{center}
+\includegraphics[width=9cm]{images/tips-simulated-annealing}
+\end{center}
+
+\subsubsection{Noising Method}
+\begin{center}
+\includegraphics[width=9cm]{images/noising-method}
+\end{center}
+
+\subsubsection{Restarting}
+\begin{center}
+\includegraphics[width=9.5cm]{images/restarting}
+\end{center}
+
+\subsubsection{GRASP}
+\begin{center}
+\includegraphics[width=9.5cm]{images/grasp}
+\end{center}
+
+\subsubsection{VNS}
+\begin{center}
+\includegraphics[width=9.5cm]{images/vns}
+\end{center}
+
+\subsection{Decomposition Methods}
+\subsubsection{Very Large Neighborhood Search (VLNS)}
+\begin{center}
+\includegraphics[width=9cm]{images/vlns}
+\end{center}
+
+\subsection{POPMUSIC}
+
+\subsection{Tabu Search}
+\begin{center}
+\includegraphics[width=9cm]{images/tabu-search1}
+\end{center}
+
+
+\begin{center}
+\includegraphics[width=1.2\linewidth]{images/tabu-search3}
+\end{center}
+
+\newpage
+\textbf{Example: Tabu Search on Knapsack}
+\begin{center}
+\includegraphics[width=9.5cm]{images/tabu-search-on-knapsack}
+\end{center}
+
+\textbf{Tuning Tabu Search}
+\begin{center}
+\includegraphics[width=9.5cm]{images/tuning-tabu-search}
+\end{center}
+
+\newpage
+\section{Ant Colony Optimization\\ (ACO)}
+ACO generates/constructs solutions. 
+
+
+\begin{center}
+	\includegraphics[width=7cm]{images/peseudo-simple-aco}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9.5cm]{images/peseudo-aco}
+\end{center}
+
+\begin{itemize}
+	\item Effect $\alpha = 0$: Switch of pheromones $\rightarrow$ Only greedy approach anymore, select next vertex with distance
+	\item $\beta = 0$: Ignore distance and only consider pheromones
+\end{itemize}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/aco-description}
+\end{center}
+
+\paragraph{Applications}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/steiner-aco}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/numeric-aco}
+\end{center}
+
+
+\subsection{Min/Max ACO}
+
+Changes in comparison to classical ACO:
+\begin{center}
+	\includegraphics[width=9.5cm]{images/min-max-aco}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/min-max-aco2}
+\end{center}
+
+Pheromone Update:
+\begin{center}
+	\includegraphics[width=9cm]{images/mmas-tsp}
+\end{center}
+
+
+
+
+\section{Genetic Algorithms}
+With genetic algorithms one can improve a found solution.
+
+
+\begin{enumerate}
+	\item Select most successful solutions
+	\item Recombine them (cross-over)
+	\item Mutate them 
+	\item Replace a part of them
+\end{enumerate}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/genetic-alg-scheme}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/genetic-pseudo}
+\end{center}
+
+
+\subsection{Encoding}
+\begin{center}
+	\includegraphics[width=9cm]{images/genetc-encoding}
+\end{center}
+
+
+\subsection{Initialization}
+\begin{center}
+	\includegraphics[width=9cm]{images/genetic-initialization}
+\end{center}
+
+\subsection{Selection}
+Trade-off between exploration and exploitation. Selective pressure will faster converge but the solution will not be that good.
+
+\begin{center}
+	\includegraphics[width=9cm]{images/selection-pressure}
+\end{center}
+
+\subsubsection{Local Tournament Selection}
+Selection pressure is proportional to k ("round" in tournament).
+\begin{center}
+	\includegraphics[width=5cm]{images/tournament-selection}
+\end{center}
+
+\subsubsection{Stochastik Universal Sampling Selection}
+\begin{center}
+	\includegraphics[width=9cm]{images/stochastik-selection}
+\end{center}
+
+\subsubsection{Roulette Wheel Selection}
+Selection pressure is proportional to k ("round" in tournament).
+\begin{center}
+	\includegraphics[width=9cm]{images/roulette-wheel-selection}
+\end{center}
+
+\subsubsection{Rank Selection}
+\begin{center}
+	\includegraphics[width=9cm]{images/rank-selection}
+\end{center}
+
+\newpage
+\subsection{Recombination}
+Enables to move to promising regions by matching good parents to to good offspring.
+
+\subsubsection{Random Bit Exchange}
+\begin{center}
+	\includegraphics[width=9cm]{images/random-bit-exchange}
+\end{center}
+
+\subsubsection{1-Point-Exchange}
+\begin{center}
+	\includegraphics[width=9cm]{images/1-point-exchange}
+\end{center}
+
+\subsubsection{2-Point-Exchange}
+\begin{center}
+	\includegraphics[width=9cm]{images/2-point-exchange}
+\end{center}
+
+\subsubsection{Order-1-Crossover (OX)}
+\begin{center}
+	\includegraphics[width=9cm]{images/order-1-crossover}
+\end{center}
+
+\subsubsection{Partially Mapped Crossover (PMX)}
+\begin{center}
+	\includegraphics[width=9cm]{images/pmx-crossover}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=7.5cm]{images/pmx-crossover2}
+\end{center}
+
+\subsection{Mutation}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/mutation-purpose}
+\end{center}
+
+\subsubsection{Path Inversion (2-opt)}
+
+\begin{center}
+	\includegraphics[width=9cm]{images/2-opt}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=8cm]{images/pressure-mutation}
+\end{center}
+
+\subsection{Evaluation (Fitness)}
+• Genetic Algorithms are only as good as the evaluation function; choosing a good (=promising) one is often the hardest part\\
+• Problem-specific\\
+• Similar-encoded solutions should have a similar fitness\\
+
+\subsection{Remarks}
+\subsubsection{Strategy}
+\begin{center}
+	\includegraphics[width=9.5cm]{images/strategies}
+\end{center}
+
+\subsubsection{Population Size}
+\begin{itemize}
+	\pro larger diversity
+	\pro better solution obtained before convergence (on average)
+	\pro lower convergence rate, larger computational time
+\end{itemize}
+
+\begin{center}
+	\includegraphics[width=9.5cm]{images/populationsize}
+\end{center}
+
+\begin{center}
+	\includegraphics[width=7cm]{images/influence_of_populationsize}
+\end{center}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \end{document}
